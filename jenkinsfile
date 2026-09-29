@@ -1,0 +1,62 @@
+pipeline {
+
+    agent any
+
+    environment {
+        PROJECT_DIR = "/home/ubuntu/Contact-Management-Web-Application-Template"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Docker') {
+            steps {
+                sh 'docker --version'
+                sh 'docker compose version'
+            }
+        }
+
+        stage('Copy Latest Code') {
+            steps {
+                sh '''
+                cd $PROJECT_DIR
+                git pull origin main
+                '''
+            }
+        }
+
+        stage('Build Containers') {
+            steps {
+                sh '''
+                cd $PROJECT_DIR
+                docker compose build
+                '''
+            }
+        }
+
+        stage('Deploy Containers') {
+            steps {
+                sh '''
+                cd $PROJECT_DIR
+
+                docker compose down || true
+
+                docker compose up -d
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                docker ps
+                '''
+            }
+        }
+    }
+}
