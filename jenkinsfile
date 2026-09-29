@@ -17,7 +17,15 @@ pipeline {
             }
         }
 
-        stage('Stop Existing Containers') {
+        stage('Clean Old Containers') {
+            steps {
+                sh '''
+                docker rm -f postgres backend frontend || true
+                '''
+            }
+        }
+
+        stage('Stop Existing Stack') {
             steps {
                 sh '''
                 docker compose down --remove-orphans || true
@@ -44,24 +52,32 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
+                echo "===== Running Containers ====="
                 docker ps
+
+                echo "===== Compose Status ====="
                 docker compose ps
                 '''
             }
         }
-
     }
 
     post {
 
         success {
-            echo 'Deployment Successful'
+            echo '✅ Deployment Successful'
         }
 
         failure {
-            echo 'Deployment Failed'
-            sh 'docker compose logs --tail=50 || true'
-        }
+            echo '❌ Deployment Failed'
 
+            sh '''
+            echo "===== Docker PS ====="
+            docker ps -a || true
+
+            echo "===== Compose Logs ====="
+            docker compose logs --tail=100 || true
+            '''
+        }
     }
 }
