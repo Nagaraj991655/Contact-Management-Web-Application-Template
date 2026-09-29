@@ -2,37 +2,31 @@ pipeline {
 
     agent any
 
-    environment {
-        DEPLOY_DIR = "/opt/contactflow"
-    }
-
     stages {
 
-        stage('Update Code') {
+        stage('Checkout') {
             steps {
-                sh '''
-                cd $DEPLOY_DIR
-                git pull origin main
-                '''
+                checkout scm
+            }
+        }
+
+        stage('Verify Docker') {
+            steps {
+                sh 'docker --version'
+                sh 'docker compose version'
             }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                cd $DEPLOY_DIR
-                docker compose build
-                '''
+                sh 'docker compose build'
             }
         }
 
         stage('Deploy') {
             steps {
                 sh '''
-                cd $DEPLOY_DIR
-
-                docker compose down
-
+                docker compose down || true
                 docker compose up -d
                 '''
             }
