@@ -2,10 +2,6 @@ pipeline {
 
     agent any
 
-    environment {
-        PROJECT_DIR = "/home/ubuntu/Contact-Management-Web-Application-Template"
-    }
-
     stages {
 
         stage('Checkout') {
@@ -21,31 +17,16 @@ pipeline {
             }
         }
 
-        stage('Copy Latest Code') {
-            steps {
-                sh '''
-                cd $PROJECT_DIR
-                git pull origin main
-                '''
-            }
-        }
-
         stage('Build Containers') {
             steps {
-                sh '''
-                cd $PROJECT_DIR
-                docker compose build
-                '''
+                sh 'docker compose build'
             }
         }
 
         stage('Deploy Containers') {
             steps {
                 sh '''
-                cd $PROJECT_DIR
-
                 docker compose down || true
-
                 docker compose up -d
                 '''
             }
@@ -53,9 +34,7 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                sh '''
-                docker ps
-                '''
+                sh 'docker ps'
             }
         }
     }
