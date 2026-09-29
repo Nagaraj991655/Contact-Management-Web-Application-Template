@@ -2,37 +2,43 @@ pipeline {
 
     agent any
 
+    environment {
+        DEPLOY_DIR = "/opt/contactflow"
+    }
+
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Verify Docker') {
-            steps {
-                sh 'docker --version'
-                sh 'docker compose version'
-            }
-        }
-
-        stage('Build Containers') {
-            steps {
-                sh 'docker compose build'
-            }
-        }
-
-        stage('Deploy Containers') {
+        stage('Update Code') {
             steps {
                 sh '''
-                docker compose down || true
+                cd $DEPLOY_DIR
+                git pull origin main
+                '''
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh '''
+                cd $DEPLOY_DIR
+                docker compose build
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd $DEPLOY_DIR
+
+                docker compose down
+
                 docker compose up -d
                 '''
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Verify') {
             steps {
                 sh 'docker ps'
             }
